@@ -50,7 +50,7 @@
     
     <script>
         // MQTT Broker configuration
-        const brokerUrl = 'wss://broker.emqx.io:8084/mqtt'; // 使用公共MQTT broker，实际应用中请替换为你自己的broker
+        const brokerUrl = 'wss://broker.hivemq.com:8884/mqtt'; // 使用公共MQTT broker，实际应用中请替换为你自己的broker
         const clientId = 'heartbeat_bloom_' + Math.random().toString(16).substr(2, 8);
         const topicName = 'heartbeat_bloom/baby_notification';
         

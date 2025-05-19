@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Bloom - Capture</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css">
+    <style>
+        .camera-overlay {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: #000;
+            background-image: url('../images/iphone-camera.jpg');
+            background-size: cover;
+            background-position: calc(50% + 70px) center;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .finger-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 180px;
+            height: 180px;
+            border: 2px dashed #0088ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            padding: 5px;
+            z-index: 5;
+        }
+        
+        .tap-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background-color: rgba(0, 136, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            animation: tap-animation 2s infinite;
+            z-index: 4;
+            box-shadow: 0 0 15px rgba(0, 136, 255, 0.6);
+        }
+        
+        @keyframes tap-animation {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+        }
+        
+        .finger-guide-text {
+            position: relative;
+            left: 60px;
+            background-color: rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 220px;
+        }
+        
+        .flash-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 0, 0, 0.25);
+            display: none;
+            transition: opacity 0.1s ease-in-out;
+            z-index: 4;
+        }
+        
+        .pulse-animation {
+            animation: pulse-ring 1.5s ease infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 20px rgba(255, 255, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+        
+        video, canvas {
+            display: none;
+        }
+        
+        .measuring-text {
+            color: #00ffcc;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        
+        .measuring-status-container {
+            background-color: #111;
+            border-radius: 12px;
+            padding: 30px 20px;
+            margin: 20px 0;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pulse-heart {
+            color: #ff3b5c;
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: pulse-heart 1.2s ease infinite;
+        }
+        
+        @keyframes pulse-heart {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            background-color: #111;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            padding: 15px 10px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .stat-card:first-child:after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 20%;
+            height: 60%;
+            width: 1px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #8e9297;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00ffcc;
+            margin-bottom: 5px;
+        }
+        
+        /* 新的交互状态样式 */
+        .state {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+        
+        .state.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 初始状态：引导用户 */
+        .state-guide {
+            background-color: rgba(0, 0, 0, 0.7);
+            text-align: center;
+        }
+        
+        .guide-animation {
+            width: 120px;
+            height: 120px;
+            background-color: rgba(0, 136, 255, 0.2);
+            border-radius: 50%;
+            margin-bottom: 20px;
+            position: relative;
+            animation: pulse-guide 2s infinite;
+        }
+        
+        @keyframes pulse-guide {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 136, 255, 0.5); }
+            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(0, 136, 255, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 136, 255, 0); }
+        }
+        
+        .guide-finger {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .guide-text {
+            color: white;
+            font-size: 16px;
+            max-width: 80%;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* 测量中状态：可视化反馈 */
+        .state-measuring {
+            background-color: rgba(0, 0, 0, 0.85);
+        }
+        
+        .heart-animation {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin-bottom: 24px;
+        }
+        
+        .heart-icon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff3b5c;
+            font-size: 60px;
+            animation: beat 1s ease infinite;
+        }
+        
+        .heart-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 59, 92, 0.5);
+            animation: heart-ring 2s ease-out infinite;
+        }
+        
+        @keyframes beat {
+            0% { transform: scale(1); }
+            15% { transform: scale(1.15); }
+            30% { transform: scale(1); }
+            45% { transform: scale(1.15); }
+            60% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes heart-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .processing-text {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            width: 80%;
+            height: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #00ffcc;
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.2s linear;
+        }
+        
+        .progress-status {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+        
+        /* 结果状态：平滑过渡到结果 */
+        .state-results {
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+        }
+        
+        .success-indicator {
+            width: 60px;
+            height: 60px;
+            background-color: #00ffcc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            color: rgba(0, 0, 0, 0.8);
+            font-size: 24px;
+        }
+        
+        .result-text {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        /* 错误状态 */
+        .state-error {
+            background-color: rgba(0, 0, 0, 0.8);
+            text-align: center;
+        }
+        
+        .error-icon {
+            font-size: 50px;
+            color: #ff3b30;
+            margin-bottom: 16px;
+        }
+        
+        .error-text {
+            color: white;
+            font-size: 16px;
+            max-width: 80%;
+            margin-bottom: 20px;
+        }
+        
+        .error-button {
+            padding: 8px 16px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .heartbeat-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTIwMCAyNCIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBmaWxsPSIjMDBmZmNjIiBkPSJNMCAwdjcuMmMxOC44IDE2LjYgOTkuNSAyNy4yIDEzOC4yIDAsMTUuOS0xMSAxOC44LTExLjYgMzYuOC03LjVzNjQuOSA5LjQgOTguOCAxMi44YzMwLjMgMy4yLTI2IDEwLjQtNTEuMiA3LjRzLTEzLjctNy40LTQ2LjMtOS41Yy0xNy45LTEuMS0xNjYuNiA1LjYtMTc2LjMtNy45eiI+PC9wYXRoPjwvc3ZnPg==');
+            opacity: 0.2;
+            background-size: 100% 100%;
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi ml-1"></i>
+        </div>
+        <div class="status-bar-time">12:30</div>
+        <div class="status-bar-icons">
+            <i class="fas fa-location-arrow"></i>
+            <i class="fas fa-lock ml-1"></i>
+            <i class="fas fa-battery-full ml-1"></i>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content">
+        <div class="flex items-center mb-4">
+            <a href="audience_dashboard.html" class="mr-3 text-blue-500">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h1 class="text-2xl font-bold">Heartbeat Bloom - Capture</h1>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Measure Your Heartbeat</h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Place your fingertip over your phone's camera lens and flash.
+                Hold still for about 15 seconds while we capture your heart rate.
+            </p>
+            
+            <div class="camera-overlay mb-4">
+                <!-- Video elements for heartbeat detection -->
+                <video id="video" autoplay></video>
+                <canvas id="canvas" width="100" height="100"></canvas>
+                
+                <!-- 交互状态层 -->
+                <div class="state state-guide active" id="state-guide">
+                    <div class="guide-animation">
+                        <i class="fas fa-fingerprint guide-finger"></i>
+                    </div>
+                    <p class="guide-text">Place your finger on the camera and tap Start</p>
+                </div>
+                
+                <div class="state state-measuring" id="state-measuring">
+                    <div class="heart-animation">
+                        <div class="heart-ring"></div>
+                        <div class="heart-ring" style="animation-delay: 0.5s"></div>
+                        <i class="fas fa-heart heart-icon"></i>
+                    </div>
+                    <p class="processing-text">Detecting heartbeat...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p class="progress-status" id="progress-status">0% Complete</p>
+                </div>
+                
+                <div class="state state-results" id="state-results">
+                    <div class="success-indicator">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <p class="result-text">Heartbeat Successfully Captured!</p>
+                </div>
+                
+                <div class="state state-error" id="state-error">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <p class="error-text">We couldn't detect your heartbeat. Please try again with better lighting.</p>
+                    <button class="error-button" id="retry-button">Try Again</button>
+                </div>
+                
+                <div class="flash-effect" id="flash"></div>
+            </div>
+            
+            <button id="heartbeat-start" class="btn btn-danger w-full mb-4">
+                <i class="fas fa-heart-pulse mr-2"></i> Start Measuring
+            </button>
+            
+            <div id="heartbeat-results" class="hidden">
+                <div class="stats-container">
+                    <div class="stats-bg">
+                        <div class="heartbeat-wave"></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Heart Rate</div>
+                        <div class="stat-value" id="bpm-value">--</div>
+                        <div class="text-sm">BPM</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Heart Rate Variability</div>
+                        <div class="stat-value" id="hrv-value">--</div>
+                        <div class="text-sm">ms</div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <a href="color_selection.html" class="btn btn-primary w-full">
+                        <i class="fas fa-palette mr-2"></i> Choose Light Color
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">How It Works</h2>
+            <p class="text-sm text-gray-500">
+                Your phone's camera can detect subtle color changes in your fingertip
+                that correspond to your pulse. This technology is similar to what's used
+                in medical pulse oximeters.
+            </p>
+            <p class="text-sm text-gray-500 mt-2">
+                Your heartbeat data will create a unique light pattern on the LED installation,
+                with the rhythm and variability influencing the light movement.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item" onclick="window.location.href='audience_dashboard.html'">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            <div>Heartbeat</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='about.html'">
+            <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+            <div>About</div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script>
+        // DOM 元素引用
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const bpmDisplay = document.getElementById('bpm-value');
+        const hrvDisplay = document.getElementById('hrv-value');
+        const heartbeatResults = document.getElementById('heartbeat-results');
+        const startButton = document.getElementById('heartbeat-start');
+        const progressFill = document.getElementById('progress-fill');
+        const progressStatus = document.getElementById('progress-status');
+        const retryButton = document.getElementById('retry-button');
+        
+        // 状态元素
+        const stateGuide = document.getElementById('state-guide');
+        const stateMeasuring = document.getElementById('state-measuring');
+        const stateResults = document.getElementById('state-results');
+        const stateError = document.getElementById('state-error');
+        
+        // 数据变量
+        let colorValues = [];
+        let timestamps = [];
+        let stream = null;
+        let isProcessing = false;
+        let measurementStartTime = 0;
+        let measurementDuration = 15000; // 15秒测量时间
+        let progressInterval = null;
+        
+        // 设置状态函数
+        function setActiveState(state) {
+            // 隐藏所有状态
+            [stateGuide, stateMeasuring, stateResults, stateError].forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            // 激活指定状态
+            state.classList.add('active');
+        }
+        
+        // 进度更新
+        function updateProgress() {
+            if (!isProcessing) return;
+            
+            const elapsed = Date.now() - measurementStartTime;
+            const progress = Math.min(100, Math.floor((elapsed / measurementDuration) * 100));
+            
+            progressFill.style.width = `${progress}%`;
+            progressStatus.textContent = `${progress}% Complete`;
+            
+            // 如果进度达到100%但还没有足够的心跳数据，显示错误
+            if (progress === 100) {
+                clearInterval(progressInterval);
+                
+                if (colorValues.length < 100 || !isValidReading()) {
+                    stopMeasurement(true);
+                }
+            }
+        }
+        
+        // 检查是否有效的心率读数
+        function isValidReading() {
+            // 这里可以添加更多的验证逻辑
+            return colorValues.length > 100;
+        }
+        
+        // 处理心跳间隔并计算BPM和HRV
+        function processHeartbeatData() {
+            // 应用平滑
+            let smoothed = applySmoothing(colorValues);
+            
+            // 找出峰值
+            let peaks = findPeaks(smoothed, timestamps);
+            
+            // 计算间隔
+            let intervals = calculateIntervals(peaks);
+            
+            // 过滤异常值
+            intervals = filterOutliers(intervals);
+            
+            if (intervals.length < 3) {
+                return { valid: false };
+            }
+            
+            // 计算BPM
+            const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+            const bpm = Math.round(60000 / avgInterval);
+            
+            // 计算HRV (ms)
+            const mean = avgInterval;
+            const variance = intervals.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / intervals.length;
+            const hrv = Math.round(Math.sqrt(variance));
+            
+            return {
+                valid: !isNaN(bpm) && bpm > 40 && bpm < 180,
+                bpm,
+                hrv
+            };
+        }
+        
+        // 平滑数据
+        function applySmoothing(values) {
+            const windowSize = 5;
+            let smoothed = [];
+            
+            for (let i = 0; i < values.length; i++) {
+                let sum = 0;
+                let count = 0;
+                for (let j = Math.max(0, i - windowSize); j <= Math.min(values.length - 1, i + windowSize); j++) {
+                    sum += values[j];
+                    count++;
+                }
+                smoothed.push(sum / count);
+            }
+            
+            return smoothed;
+        }
+        
+        // 找出峰值
+        function findPeaks(values, times) {
+            let diffs = values.map((v, i, a) => i > 0 ? v - a[i - 1] : 0);
+            let peaks = [];
+            
+            for (let i = 1; i < diffs.length - 1; i++) {
+                if (diffs[i] > 0 && diffs[i+1] <= 0) {
+                    peaks.push(times[i]);
+                }
+            }
+            
+            return peaks;
+        }
+        
+        // 计算间隔
+        function calculateIntervals(peaks) {
+            let intervals = [];
+            for (let i = 1; i < peaks.length; i++) {
+                intervals.push(peaks[i] - peaks[i-1]);
+            }
+            return intervals;
+        }
+        
+        // 过滤异常值
+        function filterOutliers(intervals) {
+            return intervals.filter(interval => interval > 300 && interval < 1500);
+        }
+        
+        // 开始测量
+        startButton.addEventListener('click', function() {
+            if (isProcessing) {
+                stopMeasurement();
+                this.innerHTML = '<i class="fas fa-heart-pulse mr-2"></i> Start Measuring';
+                setActiveState(stateGuide);
+                return;
+            }
+            
+            // 更新按钮状态
+            this.innerHTML = '<i class="fas fa-stop-circle mr-2"></i> Stop Measuring';
+            heartbeatResults.classList.add('hidden');
+            
+            // 重置数据
+            colorValues = [];
+            timestamps = [];
+            progressFill.style.width = '0%';
+            progressStatus.textContent = '0% Complete';
+            
+            // 显示测量状态
+            setActiveState(stateMeasuring);
+            
+            // 开始摄像头
+            startCamera();
+        });
+        
+        // 重试按钮
+        retryButton.addEventListener('click', function() {
+            setActiveState(stateGuide);
+        });
+        
+        // 开始摄像头
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: "environment",
+                    width: { ideal: 320 },
+                    height: { ideal: 240 }
+                }, 
+                audio: false 
+            })
+            .then(videoStream => {
+                stream = videoStream;
+                video.srcObject = stream;
+                video.play();
+                
+                isProcessing = true;
+                measurementStartTime = Date.now();
+                
+                // 设置进度更新
+                progressInterval = setInterval(updateProgress, 100);
+                
+                // 开始处理帧
+                processFrame();
+            })
+            .catch(error => {
+                console.error("Error accessing camera:", error);
+                setActiveState(stateError);
+                startButton.innerHTML = '<i class="fas fa-heart-pulse mr-2"></i> Start Measuring';
+            });
+        }
+        
+        // 处理视频帧
+        function processFrame() {
+            if (!isProcessing) return;
+            
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // 提取颜色数据
+            let sumRed = 0;
+            let sumGreen = 0;
+            for (let i = 0; i < frame.data.length; i += 4) {
+                sumRed += frame.data[i];      // 红色通道
+                sumGreen += frame.data[i + 1]; // 绿色通道
+            }
+            
+            let avgRed = sumRed / (frame.data.length / 4);
+            let avgGreen = sumGreen / (frame.data.length / 4);
+            
+            // 使用最合适的通道
+            let avgValue = avgRed > avgGreen * 1.5 ? avgRed : avgGreen;
+            
+            let now = Date.now();
+            colorValues.push(avgValue);
+            timestamps.push(now);
+            
+            // 保留最近10秒的数据
+            const timeWindow = 10000;
+            while (timestamps.length > 0 && now - timestamps[0] > timeWindow) {
+                timestamps.shift();
+                colorValues.shift();
+            }
+            
+            // 足够的数据来分析
+            if (colorValues.length > 60 && (now - measurementStartTime) % 1000 < 50) {
+                const result = processHeartbeatData();
+                
+                if (result.valid) {
+                    simulateFlash();
+                    
+                    // 记录临时结果，但继续测量直到结束
+                    bpmDisplay.textContent = result.bpm;
+                    hrvDisplay.textContent = result.hrv;
+                    
+                    // 如果已经收集了足够的数据并且读数稳定
+                    if (colorValues.length > 150 && now - measurementStartTime > 8000) {
+                        completeCapture(result.bpm, result.hrv);
+                    }
+                }
+            } else if (colorValues.length < 30 && Math.random() > 0.9) {
+                // 在初始阶段随机闪烁，提供视觉反馈
+                simulateFlash();
+            }
+            
+            requestAnimationFrame(processFrame);
+        }
+        
+        // 完成捕获
+        function completeCapture(bpm, hrv) {
+            // 保存值
+            localStorage.setItem('bpm', bpm);
+            localStorage.setItem('hrv', hrv);
+            
+            // 停止测量
+            stopMeasurement();
+            
+            // 显示完成状态
+            setActiveState(stateResults);
+            
+            // 短暂延迟后显示结果
+            setTimeout(() => {
+                heartbeatResults.classList.remove('hidden');
+                startButton.innerHTML = '<i class="fas fa-heart-pulse mr-2"></i> Measure Again';
+                setActiveState(stateGuide);
+            }, 1500);
+        }
+        
+        // 停止测量
+        function stopMeasurement(isError = false) {
+            isProcessing = false;
+            
+            // 清除进度更新定时器
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            
+            // 停止摄像头
+            if (stream) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                stream = null;
+            }
+            
+            // 如果是错误停止，显示错误状态
+            if (isError) {
+                setActiveState(stateError);
+                startButton.innerHTML = '<i class="fas fa-heart-pulse mr-2"></i> Start Measuring';
+            }
+        }
+        
+        // 闪烁效果
+        function simulateFlash() {
+            const flash = document.getElementById('flash');
+            flash.style.display = 'block';
+            flash.style.opacity = '1';
+            setTimeout(() => {
+                flash.style.opacity = '0';
+                setTimeout(() => {
+                    flash.style.display = 'none';
+                }, 100);
+            }, 100);
+        }
+        
+        // 初始状态设置
+        document.addEventListener('DOMContentLoaded', function() {
+            setActiveState(stateGuide);
+        });
+    </script>
+</body>
+</html> 

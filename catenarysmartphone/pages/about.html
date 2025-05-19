@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Bloom - About</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+    <!-- iOS Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi ml-1"></i>
+        </div>
+        <div class="status-bar-time">12:30</div>
+        <div class="status-bar-icons">
+            <i class="fas fa-location-arrow"></i>
+            <i class="fas fa-lock ml-1"></i>
+            <i class="fas fa-battery-full ml-1"></i>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content">
+        <h1 class="text-2xl font-bold mb-4">About</h1>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">About the Installation</h2>
+            <p class="mb-2">
+                The Heartbeat Bloom LED Light Installation celebrates new life at our hospital.
+                Each shooting star represents a newborn baby.
+            </p>
+            <p>
+                Every Wednesday, we create a special "Life Path" visualization showing
+                all births from the past week as a beautiful light trail.
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">How It Works</h2>
+            <p class="mb-2">
+                Your phone's camera can detect subtle color changes in your fingertip that correspond to your pulse. 
+                This technology is similar to what's used in medical pulse oximeters.
+            </p>
+            <p>
+                Your heartbeat data will create a unique light pattern on the LED installation, 
+                with the rhythm and variability influencing the light movement.
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Technical Details</h2>
+            <p class="mb-2">
+                The installation consists of over 500 LED lights arranged in a catenary curve
+                that spans across the hospital atrium.
+            </p>
+            <p>
+                Each LED is individually addressable, allowing for precise control of color, 
+                brightness, and animation patterns through custom software.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item" onclick="window.location.href='audience_dashboard.html'">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='heartbeat_capture.html'">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            <div>Heartbeat</div>
+        </div>
+        <div class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+            <div>About</div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+</body>
+</html> 

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Bloom - Weekly Stats</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css">
+    <style>
+        .line-chart {
+            width: 100%;
+            height: 150px;
+            margin: 16px 0;
+            position: relative;
+        }
+        
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: var(--primary-color);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 2s ease-in-out forwards;
+            vector-effect: non-scaling-stroke;
+        }
+        
+        @keyframes draw {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        
+        .chart-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            transform: translate(-50%, 50%);
+        }
+        
+        .chart-label {
+            position: absolute;
+            bottom: -24px;
+            width: 14%;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .stats-container {
+            margin-bottom: 8px;
+        }
+        
+        .stat-card {
+            padding: 12px;
+        }
+        
+        .stat-value {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi ml-1"></i>
+        </div>
+        <div class="status-bar-time">12:30</div>
+        <div class="status-bar-icons">
+            <i class="fas fa-location-arrow"></i>
+            <i class="fas fa-lock ml-1"></i>
+            <i class="fas fa-battery-full ml-1"></i>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content">
+        <div class="flex items-center mb-4">
+            <a href="nurse_dashboard.html" class="mr-3 text-blue-500">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h1 class="text-2xl font-bold">Weekly Birth Statistics</h1>
+        </div>
+        
+        <div class="card">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-xl font-semibold">This Week's Births</h2>
+                <span class="text-sm text-gray-500">Aug 14 - Aug 20</span>
+            </div>
+            
+            <div class="line-chart" id="weekly-chart">
+                <!-- Line chart will be added via JS -->
+                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <polyline class="chart-line" points="" />
+                </svg>
+            </div>
+            
+            <div class="stats-container mt-8">
+                <div class="stat-card">
+                    <div class="stat-label">Total Births</div>
+                    <div class="stat-value">87</div>
+                    <div class="text-sm text-green-500">+12% from last week</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Daily Average</div>
+                    <div class="stat-value">12.4</div>
+                    <div class="text-sm text-gray-500">Steady</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Share Weekly Report</h2>
+            <button class="btn btn-primary w-full">
+                <i class="fas fa-share-alt mr-2"></i> Share with Team
+            </button>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item" onclick="window.location.href='audience_dashboard.html'">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='heartbeat_capture.html'">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            <div>Heartbeat</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='about.html'">
+            <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+            <div>About</div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script>
+        // Initialize line chart with random data for demo
+        document.addEventListener('DOMContentLoaded', function() {
+            initLineChart();
+        });
+        
+        function initLineChart() {
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            const data = [];
+            
+            // Generate random data
+            for (let i = 0; i < 7; i++) {
+                data.push(Math.floor(Math.random() * 20) + 5);
+            }
+            
+            // Find max for scaling
+            const max = Math.max(...data);
+            
+            // Create line chart
+            const chartLine = document.querySelector('.chart-line');
+            let points = '';
+            
+            // Create points for polyline with equal horizontal spacing
+            for (let i = 0; i < 7; i++) {
+                // 使用固定的水平间距，确保线段宽度相等
+                const x = i * (100/6); // 均匀分布在0-100%范围内
+                const y = 100 - (data[i] / max * 80); // Scale to 80% of height
+                points += `${x},${y} `;
+                
+                // Create point marker
+                createChartPoint(x, y);
+                
+                // Create label
+                createChartLabel(x, days[i]);
+            }
+            
+            // Set polyline points
+            chartLine.setAttribute('points', points);
+        }
+        
+        function createChartPoint(x, y) {
+            const chart = document.getElementById('weekly-chart');
+            const point = document.createElement('div');
+            point.classList.add('chart-point');
+            point.style.left = `${x}%`;
+            point.style.bottom = `${100-y}%`;
+            chart.appendChild(point);
+        }
+        
+        function createChartLabel(x, text) {
+            const chart = document.getElementById('weekly-chart');
+            const label = document.createElement('div');
+            label.classList.add('chart-label');
+            label.textContent = text;
+            label.style.left = `${x}%`;
+            chart.appendChild(label);
+        }
+    </script>
+</body>
+</html> 

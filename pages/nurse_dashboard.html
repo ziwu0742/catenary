@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Bloom - Nurse Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+    <!-- iOS Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi ml-1"></i>
+        </div>
+        <div class="status-bar-time">12:30</div>
+        <div class="status-bar-icons">
+            <i class="fas fa-location-arrow"></i>
+            <i class="fas fa-lock ml-1"></i>
+            <i class="fas fa-battery-full ml-1"></i>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content">
+        <div class="flex items-center mb-4">
+            <a href="audience_dashboard.html" class="mr-3 text-blue-500">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h1 class="text-2xl font-bold">Heartbeat Bloom</h1>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3 text-left flex items-center justify-between">
+                Today's Newborns
+                <div class="flex items-center">
+                    <button id="undo-last" class="text-gray-500 hover:text-yellow-500 transition-colors mr-3" title="Undo last addition">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button id="reset-count" class="text-gray-500 hover:text-red-500 transition-colors" title="Reset counter">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </h2>
+            <div class="flex flex-col items-center">
+                <div class="flex flex-col items-center mb-4">
+                    <span class="text-4xl font-bold" id="birth-count">0</span>
+                    <span class="text-sm text-gray-500">Births Today</span>
+                </div>
+                <div class="px-10">
+                    <button id="birth-button" class="btn btn-primary btn-lg btn-rounded w-full">
+                        <img src="../images/baby.ico" alt="Baby" class="w-12 h-12 mr-2 invert brightness-0 filter" style="filter: brightness(0) invert(1);"> +1
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">LED Light Preview</h2>
+            <div class="led-preview">
+                <!-- Meteor animations will be added here via JS -->
+            </div>
+            <p class="text-sm text-gray-500 mt-2">
+                Each birth triggers a "shooting star" effect on the LED installation.
+                Click the +1 button above to see it in action.
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3 cursor-pointer flex items-center justify-between" id="weekly-summary-header">
+                Weekly Summary
+                <i class="fas fa-chevron-down text-gray-400" id="weekly-toggle-icon"></i>
+            </h2>
+            <div id="weekly-summary-content" class="hidden">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="text-sm font-medium">Aug 14 - Aug 20</span>
+                    <span class="text-xs text-gray-500">This Week</span>
+                </div>
+                
+                <div class="stats-container mt-4 mb-3">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Births</div>
+                        <div class="stat-value">87</div>
+                        <div class="text-sm text-green-500">+12% from last week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Daily Average</div>
+                        <div class="stat-value">12.4</div>
+                        <div class="text-sm text-gray-500">Steady</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline text-blue-500 border border-blue-500 w-full mt-2">
+                    <i class="fas fa-share-alt mr-2"></i> Share Weekly Report
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="window.location.href='audience_dashboard.html'">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='heartbeat_capture.html'">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            <div>Heartbeat</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='about.html'">
+            <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+            <div>About</div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script>
+        // Initialize birth count from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get current birth count from localStorage
+            const storedCount = localStorage.getItem('birthCount') || 0;
+            updateBirthCount(storedCount);
+            
+            // Setup +1 button click handler
+            const birthButton = document.getElementById('birth-button');
+            if (birthButton) {
+                birthButton.addEventListener('click', function() {
+                    const currentCount = parseInt(document.getElementById('birth-count').textContent) || 0;
+                    const newCount = currentCount + 1;
+                    updateBirthCount(newCount);
+                    localStorage.setItem('birthCount', newCount);
+                    triggerMeteor();
+                    
+                    // 通知父窗口发送MQTT消息
+                    try {
+                        // 尝试通过父窗口发送事件
+                        if (window.parent) {
+                            // 方法1: 使用CustomEvent
+                            const event = new CustomEvent('babyCountIncrease', {
+                                detail: { count: newCount }
+                            });
+                            window.parent.dispatchEvent(event);
+                            console.log('Baby count increase event dispatched to parent window');
+                            
+                            // 方法2: 使用postMessage (跨域时使用)
+                            window.parent.postMessage({
+                                type: 'baby_counter_increased',
+                                count: newCount,
+                                timestamp: new Date().toISOString()
+                            }, '*');  // 在生产环境中应该替换'*'为确切的域名
+                            console.log('Baby count increase message posted to parent window');
+                        } else {
+                            console.warn('No parent window found');
+                        }
+                    } catch (error) {
+                        console.error('Error communicating with parent window:', error);
+                    }
+                });
+            }
+            
+            // Setup reset button click handler
+            const resetButton = document.getElementById('reset-count');
+            if (resetButton) {
+                resetButton.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to reset the birth count to zero?')) {
+                        updateBirthCount(0);
+                        localStorage.setItem('birthCount', 0);
+                    }
+                });
+            }
+            
+            // Setup undo button click handler
+            const undoButton = document.getElementById('undo-last');
+            if (undoButton) {
+                undoButton.addEventListener('click', function() {
+                    const currentCount = parseInt(document.getElementById('birth-count').textContent) || 0;
+                    if (currentCount > 0) {
+                        const newCount = currentCount - 1;
+                        updateBirthCount(newCount);
+                        localStorage.setItem('birthCount', newCount);
+                    } else {
+                        // Disable animation when count is already 0
+                        undoButton.classList.add('opacity-50');
+                        setTimeout(() => {
+                            undoButton.classList.remove('opacity-50');
+                        }, 500);
+                    }
+                });
+            }
+            
+            // Weekly summary toggle
+            const weeklyHeader = document.getElementById('weekly-summary-header');
+            const weeklyContent = document.getElementById('weekly-summary-content');
+            const toggleIcon = document.getElementById('weekly-toggle-icon');
+            
+            if (weeklyHeader && weeklyContent && toggleIcon) {
+                weeklyHeader.addEventListener('click', function() {
+                    weeklyContent.classList.toggle('hidden');
+                    toggleIcon.classList.toggle('fa-chevron-down');
+                    toggleIcon.classList.toggle('fa-chevron-up');
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

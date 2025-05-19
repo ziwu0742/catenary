@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audience Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css">
+    <style>
+        .heartbeat-btn {
+            padding: 16px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+            animation: pulse-btn 2s infinite;
+        }
+        
+        @keyframes pulse-btn {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(220, 38, 38, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- iOS Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi ml-1"></i>
+        </div>
+        <div class="status-bar-time">12:30</div>
+        <div class="status-bar-icons">
+            <i class="fas fa-location-arrow"></i>
+            <i class="fas fa-lock ml-1"></i>
+            <i class="fas fa-battery-full ml-1"></i>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content">
+        <h1 class="text-2xl font-bold mb-4">Heartbeat Bloom</h1>
+        
+        <!-- Staff Access -->
+        <div class="card bg-amber-50 cursor-pointer" onclick="window.location.href='nurse_dashboard.html'">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <i class="fas fa-user-nurse text-blue-600 mr-3 text-xl"></i>
+                    <h2 class="text-xl font-semibold">Hospital Staff Access</h2>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3 flex items-center">
+                <img src="../images/baby.ico" alt="Baby" class="w-12 h-12 mr-2"> Today's Newborns
+            </h2>
+            <div class="flex flex-col items-center">
+                <div class="text-6xl font-bold mb-2" id="birth-count">0</div>
+                <div class="text-lg text-gray-500">New Lives Today</div>
+                <div class="text-sm text-gray-400 mt-1">Last updated: 5 minutes ago</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Participate</h2>
+            <p class="mb-4">
+                Add your heartbeat to the light installation by tapping the button below.
+                Your heartbeat will create a unique light pattern on the LED display.
+            </p>
+            
+            <div class="mt-4">
+                <button class="btn btn-primary w-full heartbeat-btn" onclick="window.location.href='heartbeat_capture.html'">
+                    <i class="fas fa-heart mr-2"></i> Add My Heartbeat
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Live LED Preview</h2>
+            <div class="led-preview">
+                <!-- LED animations will be added here via JS -->
+            </div>
+            <p class="text-sm text-gray-500 mt-2">
+                This is a live preview of the LED installation. 
+                New births and heartbeats create light effects in real-time.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='heartbeat_capture.html'">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            <div>Heartbeat</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='about.html'">
+            <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+            <div>About</div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script>
+        // Create occasional meteor animations for the demo
+        setInterval(() => {
+            if (Math.random() > 0.5) {
+                triggerMeteor();
+            }
+        }, 5000);
+        
+        // Check for birth count updates
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize birth count display
+            const storedCount = localStorage.getItem('birthCount') || 0;
+            updateBirthCount(storedCount);
+            
+            // Update the "last updated" time
+            updateLastUpdatedTime();
+            
+            // Check for updates every 5 seconds
+            setInterval(() => {
+                const currentCount = localStorage.getItem('birthCount') || 0;
+                updateBirthCount(currentCount);
+            }, 5000);
+        });
+        
+        // Update the "last updated" text
+        function updateLastUpdatedTime() {
+            const lastUpdatedElement = document.querySelector('.text-sm.text-gray-400');
+            if (lastUpdatedElement) {
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                lastUpdatedElement.textContent = `Last updated: ${hours}:${minutes}`;
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heartbeat Bloom - Color Selection</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/mobile.css">
+</head>
+<body>
+    <!-- iOS Status Bar -->
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <i class="fas fa-signal"></i>
+            <i class="fas fa-wifi ml-1"></i>
+        </div>
+        <div class="status-bar-time">12:30</div>
+        <div class="status-bar-icons">
+            <i class="fas fa-location-arrow"></i>
+            <i class="fas fa-lock ml-1"></i>
+            <i class="fas fa-battery-full ml-1"></i>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content">
+        <div class="flex items-center mb-4">
+            <a href="heartbeat_capture.html" class="mr-3 text-blue-500">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <h1 class="text-2xl font-bold">Choose Your Color</h1>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Select an Emotion</h2>
+            <p class="mb-4">
+                Choose a color that represents how you feel about the new life being celebrated today.
+                Your color will influence the light pattern created by your heartbeat.
+            </p>
+            
+            <div class="color-options">
+                <div class="color-option-container">
+                    <div class="color-option" style="background-color: #FF3B30;" title="Happiness">
+                        <span class="sr-only">Happiness (Red)</span>
+                    </div>
+                    <div class="emotion-label">Happiness</div>
+                </div>
+                <div class="color-option-container">
+                    <div class="color-option" style="background-color: #FF2D55;" title="Love">
+                        <span class="sr-only">Love (Pink)</span>
+                    </div>
+                    <div class="emotion-label">Love</div>
+                </div>
+                <div class="color-option-container">
+                <div class="color-option" style="background-color: #FFCC00;" title="Hope">
+                    <span class="sr-only">Hope (Yellow)</span>
+                    </div>
+                    <div class="emotion-label">Hope</div>
+                </div>
+                <div class="color-option-container">
+                    <div class="color-option" style="background-color: #FF9500;" title="Encouragement">
+                        <span class="sr-only">Encouragement (Orange)</span>
+                    </div>
+                    <div class="emotion-label">Encouragement</div>
+                </div>
+                <div class="color-option-container">
+                    <div class="color-option" style="background-color: #34C759;" title="Peaceful">
+                        <span class="sr-only">Peaceful (Green)</span>
+                    </div>
+                    <div class="emotion-label">Peaceful</div>
+                </div>
+                <div class="color-option-container">
+                    <div class="color-option" style="background-color: #5AC8FA;" title="Calm">
+                        <span class="sr-only">Calm (Light Blue)</span>
+                    </div>
+                    <div class="emotion-label">Calm</div>
+                </div>
+                <div class="color-option-container">
+                <div class="color-option" style="background-color: #007AFF;" title="Trust">
+                    <span class="sr-only">Trust (Blue)</span>
+                    </div>
+                    <div class="emotion-label">Trust</div>
+                </div>
+                <div class="color-option-container">
+                <div class="color-option" style="background-color: #5856D6;" title="Wisdom">
+                    <span class="sr-only">Wisdom (Purple)</span>
+                </div>
+                    <div class="emotion-label">Wisdom</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Light Preview</h2>
+            <div class="led-preview">
+                <!-- LED preview will be updated via JS -->
+            </div>
+            <p class="text-sm text-gray-500 mt-2">
+                This is how your heartbeat will look on the LED installation.
+                The rhythm is based on your measured heartbeat.
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2 class="text-xl font-semibold mb-3">Your Heartbeat Data</h2>
+            <div class="stats-container">
+                <div class="stat-card">
+                    <div class="stat-label">Heart Rate</div>
+                    <div class="stat-value" id="bpm-value">72</div>
+                    <div class="text-sm">BPM</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Heart Rate Variability</div>
+                    <div class="stat-value" id="hrv-value">45</div>
+                    <div class="text-sm">ms</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <button class="btn btn-primary w-full" onclick="sendLightToInstallation()">
+                <i class="fas fa-lightbulb mr-2"></i> Add My Light to Installation
+            </button>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <div class="nav-item" onclick="window.location.href='audience_dashboard.html'">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div>Home</div>
+        </div>
+        <div class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-heart"></i></div>
+            <div>Heartbeat</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='about.html'">
+            <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+            <div>About</div>
+        </div>
+    </div>
+    
+    <script src="../js/common.js"></script>
+    <script>
+        // Set up color selection
+        function selectColor(element) {
+            // Remove selected class from all options
+            document.querySelectorAll('.color-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            
+            // Save the selected color to localStorage
+            const color = window.getComputedStyle(element).backgroundColor;
+            localStorage.setItem('selectedColor', color);
+        }
+        
+        // Initialize with random heartbeat data
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get heartbeat data from previous page or generate random
+            const bpm = localStorage.getItem('bpm') || Math.floor(Math.random() * 40) + 60;
+            const hrv = localStorage.getItem('hrv') || Math.floor(Math.random() * 60) + 20;
+            
+            document.getElementById('bpm-value').textContent = bpm;
+            document.getElementById('hrv-value').textContent = hrv;
+            
+            // Set up color selection
+            const colorOptions = document.querySelectorAll('.color-option');
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    selectColor(this);
+                    
+                    // Create meteor effect with selected color
+                    const color = window.getComputedStyle(this).backgroundColor;
+                    createCustomMeteor(color);
+                });
+            });
+            
+            // Select first color by default
+            selectColor(colorOptions[0]);
+        });
+        
+        // Create meteor with custom color
+        function createCustomMeteor(color) {
+            const ledPreview = document.querySelector('.led-preview');
+            if (!ledPreview) return;
+            
+            const meteor = document.createElement('div');
+            meteor.classList.add('meteor');
+            meteor.style.background = `linear-gradient(to right, rgba(0,0,0,0), ${color})`;
+            
+            // Random position and angle
+            const startX = Math.random() * 20;
+            const startY = Math.random() * 20;
+            meteor.style.top = `${startY}%`;
+            meteor.style.left = `${startX}%`;
+            meteor.style.transform = `rotate(${Math.random() * 45 + 22.5}deg)`;
+            
+            ledPreview.appendChild(meteor);
+            
+            // Remove meteor after animation completes
+            setTimeout(() => {
+                meteor.remove();
+            }, 2000);
+        }
+        
+        function sendLightToInstallation() {
+            const colorString = localStorage.getItem('selectedColor'); // "rgb(52, 199, 89)"
+            const bpm = parseInt(document.getElementById('bpm-value').textContent);
+            const hrv = parseInt(document.getElementById('hrv-value').textContent);
+
+            // 将 rgb 字符串转为 {r, g, b}
+            function rgbStringToObject(rgbStr) {
+                const match = rgbStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (!match) return { r: 255, g: 255, b: 255 };
+                return {
+                    r: parseInt(match[1]),
+                    g: parseInt(match[2]),
+                    b: parseInt(match[3])
+                };
+            }
+
+            const rgbColor = rgbStringToObject(colorString);
+
+            // 发 postMessage 给主页面
+            window.parent.postMessage({
+                type: 'add_light_to_installation',
+                color: rgbColor,
+                bpm: bpm,
+                hrv: hrv
+            }, '*');
+
+            console.log('🚀 Sent add_light_to_installation:', rgbColor, bpm, hrv);
+
+            // 可选：跳转页面
+            window.location.href = 'qr_scan.html';
+        }
+    </script>
+</body>
+</html> 

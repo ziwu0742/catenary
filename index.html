@@ -110,6 +110,28 @@
                 console.warn('MQTT client not connected. Cannot publish message.');
             }
         }
+        
+        function publishLightInstallation(lightData) {
+            if (mqttClient && mqttClient.connected) {
+                const message = {
+                    event: 'add_light',
+                    color: lightData.color,
+                    bpm: lightData.bpm,
+                    hrv: lightData.hrv,
+                    timestamp: new Date().toISOString()
+                };
+                
+                mqttClient.publish('heartbeat_bloom/light_installation', JSON.stringify(message), { qos: 1 }, (error) => {
+                    if (error) {
+                        console.error('❌ Publish error:', error);
+                    } else {
+                        console.log('✅ Light installation data published:', message);
+                    }
+                });
+            } else {
+                console.warn('⚠️ MQTT client not connected. Cannot publish message.');
+            }
+        }
 
         // 设置跨域消息监听，用于iframe通信
         window.addEventListener('message', function(event) {
@@ -120,6 +142,16 @@
             if (event.data && event.data.type === 'baby_counter_increased') {
                 console.log('Baby counter increased event received via postMessage');
                 publishBabyNotification();
+            }
+            
+            if (event.data && event.data.type === 'add_light_to_installation') {
+                const lightData = {
+                    color: event.data.color,
+                    bpm: event.data.bpm,
+                    hrv: event.data.hrv
+                };
+                console.log('📩 Received light install postMessage:', lightData);
+                publishLightInstallation(lightData);
             }
         }, false);
         

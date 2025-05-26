@@ -119,7 +119,7 @@
         </div>
         
         <div class="mt-4">
-            <button class="btn btn-primary w-full" onclick="window.location.href='qr_scan.html'">
+            <button class="btn btn-primary w-full" onclick="sendLightToInstallation()">
                 <i class="fas fa-lightbulb mr-2"></i> Add My Light to Installation
             </button>
         </div>
@@ -205,6 +205,38 @@
             setTimeout(() => {
                 meteor.remove();
             }, 2000);
+        }
+        
+        function sendLightToInstallation() {
+            const colorString = localStorage.getItem('selectedColor'); // "rgb(52, 199, 89)"
+            const bpm = parseInt(document.getElementById('bpm-value').textContent);
+            const hrv = parseInt(document.getElementById('hrv-value').textContent);
+
+            // 将 rgb 字符串转为 {r, g, b}
+            function rgbStringToObject(rgbStr) {
+                const match = rgbStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+                if (!match) return { r: 255, g: 255, b: 255 };
+                return {
+                    r: parseInt(match[1]),
+                    g: parseInt(match[2]),
+                    b: parseInt(match[3])
+                };
+            }
+
+            const rgbColor = rgbStringToObject(colorString);
+
+            // 发 postMessage 给主页面
+            window.parent.postMessage({
+                type: 'add_light_to_installation',
+                color: rgbColor,
+                bpm: bpm,
+                hrv: hrv
+            }, '*');
+
+            console.log('🚀 Sent add_light_to_installation:', rgbColor, bpm, hrv);
+
+            // 可选：跳转页面
+            window.location.href = 'qr_scan.html';
         }
     </script>
 </body>
